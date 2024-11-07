@@ -7,3 +7,4 @@ local o = vim.o
 o.relativenumber = true
 o.wrap = false
 o.colorcolumn = "80"
+o.backupcopy = "yes"

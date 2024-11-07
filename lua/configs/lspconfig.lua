@@ -1,4 +1,3 @@
--- EXAMPLE
 local on_attach = require("nvchad.configs.lspconfig").on_attach
 local on_init = require("nvchad.configs.lspconfig").on_init
 local capabilities = require("nvchad.configs.lspconfig").capabilities
@@ -15,8 +14,12 @@ local servers = {
   "volar",
   "ruff",
   "biome",
-  "elixirls",
+  "lexical",
+  "jdtls",
+  "eslint",
   "pyright",
+  "denols",
+  "zls",
 }
 
 -- lsps with default config
@@ -53,28 +56,45 @@ lspconfig.pyright.setup {
   },
 }
 
-require("lspconfig").ts_ls.setup {
+local util = require "lspconfig.util"
+
+local function is_deno_project(fname)
+  return util.root_pattern("deno.json", "deno.jsonc")(fname) ~= nil
+end
+
+on_attach = function(client, bufnr)
+  local buf_name = vim.api.nvim_buf_get_name(bufnr)
+  if is_deno_project(buf_name) then
+    if client.name == "ts_ls" or client.name == "volar" then
+      client.stop()
+    end
+  end
+end
+
+lspconfig.ts_ls.setup {
+  on_attach = on_attach,
   init_options = {
-    plugins = {
-      {
-        name = "@vue/typescript-plugin",
-        location = "/Users/haekal/node_modules/@vue/typescript-plugin",
-        languages = { "javascript", "typescript", "vue" },
-      },
+    preferences = {
+      disableSuggestions = true,
     },
   },
-  filetypes = {
-    "javascript",
-    "typescript",
-    "vue",
-  },
+  root_dir = function(fname)
+    if is_deno_project(fname) or util.root_pattern "vue.config.js"(fname) then
+      return nil
+    end
+    return util.root_pattern("package.json", "tsconfig.json", "jsconfig.json")(
+      fname
+    )
+  end,
+  filetypes = { "javascript", "typescript" },
 }
 
--- You must make sure volar is setup
--- e.g. require'lspconfig'.volar.setup{}
--- See volar's section for more information
+lspconfig.denols.setup {
+  on_attach = on_attach,
+  root_dir = util.root_pattern("deno.json", "deno.jsonc"),
+  filetypes = { "javascript", "typescript" },
+}
 
-local util = require "lspconfig.util"
 local function get_typescript_server_path(root_dir)
   local global_ts = "/Users/haekal/node_modules/typescript/lib"
   local found_ts = ""
@@ -92,11 +112,17 @@ local function get_typescript_server_path(root_dir)
 end
 
 lspconfig.volar.setup {
+  on_attach = on_attach,
   on_new_config = function(new_config, new_root_dir)
     new_config.init_options.typescript.tsdk =
       get_typescript_server_path(new_root_dir)
   end,
-
+  root_dir = util.root_pattern(
+    "package.json",
+    "tsconfig.json",
+    "jsconfig.json",
+    "vue.config.js"
+  ),
   filetypes = {
     "typescript",
     "javascript",
@@ -118,4 +144,27 @@ lspconfig.tailwindcss.setup {
     "postcss.config.mjs",
     "postcss.config.ts"
   ),
+}
+
+lspconfig.cssls.setup {
+  settings = {
+    css = {
+      validate = true,
+      lint = {
+        unknownAtRules = "ignore",
+      },
+    },
+    scss = {
+      validate = true,
+      lint = {
+        unknownAtRules = "ignore",
+      },
+    },
+    less = {
+      validate = true,
+      lint = {
+        unknownAtRules = "ignore",
+      },
+    },
+  },
 }
