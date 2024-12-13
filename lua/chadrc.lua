@@ -5,7 +5,7 @@
 local M = {}
 
 M.base46 = {
-  theme = "ayu_dark",
+  theme = "catppuccin",
   transparency = false,
 }
 
@@ -13,8 +13,13 @@ M.ui = {
   telescope = { style = "borderless" },
   statusline = { theme = "minimal", separator_style = "round" },
   cmp = {
-    icons = false,
+    icons = true,
   },
 }
+
+M.nvdash = {
+  load_on_startup = true,
+}
+
 
 return M

@@ -18,8 +18,9 @@ local servers = {
   "jdtls",
   "eslint",
   "pyright",
-  "denols",
+  "markdown_oxide",
   "zls",
+  "fsautocomplete",
 }
 
 -- lsps with default config
@@ -58,18 +59,10 @@ lspconfig.pyright.setup {
 
 local util = require "lspconfig.util"
 
-local function is_deno_project(fname)
-  return util.root_pattern("deno.json", "deno.jsonc")(fname) ~= nil
-end
-
-on_attach = function(client, bufnr)
-  local buf_name = vim.api.nvim_buf_get_name(bufnr)
-  if is_deno_project(buf_name) then
-    if client.name == "ts_ls" or client.name == "volar" then
-      client.stop()
-    end
-  end
-end
+local mason_registry = require "mason-registry"
+local vue_language_server_path = mason_registry
+  .get_package("vue-language-server")
+  :get_install_path() .. "/node_modules/@vue/language-server"
 
 lspconfig.ts_ls.setup {
   on_attach = on_attach,
@@ -77,61 +70,24 @@ lspconfig.ts_ls.setup {
     preferences = {
       disableSuggestions = true,
     },
+    plugins = {
+      {
+        name = "@vue/typescript-plugin",
+        location = vue_language_server_path,
+        languages = { "vue" },
+      },
+    },
   },
-  root_dir = function(fname)
-    if is_deno_project(fname) or util.root_pattern "vue.config.js"(fname) then
-      return nil
-    end
-    return util.root_pattern("package.json", "tsconfig.json", "jsconfig.json")(
-      fname
-    )
-  end,
-  filetypes = { "javascript", "typescript" },
-}
-
-lspconfig.denols.setup {
-  on_attach = on_attach,
-  root_dir = util.root_pattern("deno.json", "deno.jsonc"),
-  filetypes = { "javascript", "typescript" },
-}
-
-local function get_typescript_server_path(root_dir)
-  local global_ts = "/Users/haekal/node_modules/typescript/lib"
-  local found_ts = ""
-  local function check_dir(path)
-    found_ts = util.path.join(path, "node_modules", "typescript", "lib")
-    if util.path.exists(found_ts) then
-      return path
-    end
-  end
-  if util.search_ancestors(root_dir, check_dir) then
-    return found_ts
-  else
-    return global_ts
-  end
-end
-
-lspconfig.volar.setup {
-  on_attach = on_attach,
-  on_new_config = function(new_config, new_root_dir)
-    new_config.init_options.typescript.tsdk =
-      get_typescript_server_path(new_root_dir)
-  end,
-  root_dir = util.root_pattern(
-    "package.json",
-    "tsconfig.json",
-    "jsconfig.json",
-    "vue.config.js"
-  ),
   filetypes = {
     "typescript",
     "javascript",
     "javascriptreact",
     "typescriptreact",
     "vue",
-    "json",
   },
 }
+
+lspconfig.volar.setup {}
 
 lspconfig.tailwindcss.setup {
   root_dir = util.root_pattern(

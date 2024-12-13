@@ -25,35 +25,15 @@ return {
     },
   },
   {
-    "nvim-tree/nvim-tree.lua",
-    enabled = false,
-  },
-  {
-    "nvim-neo-tree/neo-tree.nvim",
-    branch = "v3.x",
+    "supermaven-inc/supermaven-nvim",
+    config = function()
+      require("supermaven-nvim").setup {
+        keymaps = {
+          accept_suggestion = "<A-Tab>",
+        },
+      }
+    end,
     lazy = false,
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-      "nvim-tree/nvim-web-devicons",
-      "MunifTanjim/nui.nvim",
-    },
-  },
-  {
-    "kdheepak/lazygit.nvim",
-    lazy = true,
-    cmd = {
-      "LazyGit",
-      "LazyGitConfig",
-      "LazyGitCurrentFile",
-      "LazyGitFilter",
-      "LazyGitFilterCurrentFile",
-    },
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-    },
-    keys = {
-      { "<leader>lg", "<cmd>LazyGit<cr>", desc = "LazyGit" },
-    },
   },
   {
     "folke/trouble.nvim",
