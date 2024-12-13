@@ -11,7 +11,6 @@ local options = {
     rust = { "rustfmt" },
     vue = { "biome" },
     python = { "ruff-format" },
-    java = { "google-java-format" },
   },
 }
 

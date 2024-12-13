@@ -15,12 +15,9 @@ local servers = {
   "ruff",
   "biome",
   "lexical",
-  "jdtls",
   "eslint",
   "pyright",
-  "markdown_oxide",
   "zls",
-  "fsautocomplete",
 }
 
 -- lsps with default config
